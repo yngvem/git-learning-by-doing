@@ -1,0 +1,28 @@
+name: tests
+
+on: [push, pull_request]
+jobs:
+  tests:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python: ['3.10', '3.11', '3.12']
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python }}
+      - name: install pdm
+        run: |
+          python -m pip install --upgrade pip wheel pdm
+      - name: install dependencies
+        run: pdm install
+      - name: run linter
+        run: |
+          poetry run ruff check .
+          poetry run format . --check
+      - name: run type checking
+        run: mypy .
+      - name: run tests
+        run: pdm run pytest
